@@ -1,0 +1,55 @@
+Indexación: Índices para buscar voluntarios por habilidad/disponibilidad, proyectos por causa, horas registradas por voluntario/proyecto. 
+
+-- 1. Buscar voluntarios por habilidad
+CREATE INDEX idx_habilidades_tipo_voluntario
+ON habilidades (id_tipo_habilidad, id_voluntario);
+
+-- consulta
+SELECT v.id_voluntario, v.nombre, v.apellido, th.nombre AS habilidad
+FROM voluntarios v
+JOIN habilidades h ON v.id_voluntario = h.id_voluntario
+JOIN tiposhabilidad th ON h.id_tipo_habilidad = th.id_tipo_habilidad
+WHERE th.nombre = 'Logistica';
+
+-- 2. Buscar voluntarios por disponibilidad
+CREATE INDEX idx_disponibilidad_voluntario
+ON disponibilidadvoluntario (id_voluntario, dia_semana, hora_inicio, hora_fin);
+
+-- consulta
+SELECT v.id_voluntario, v.nombre, v.apellido, d.dia_semana, d.hora_inicio, d.hora_fin
+FROM voluntarios v
+JOIN disponibilidadvoluntario d ON v.id_voluntario = d.id_voluntario
+WHERE d.dia_semana = 'Lunes'
+  AND d.hora_inicio <= '8:00'
+  AND d.hora_fin >= '12:00';
+
+-- 3. Buscar proyectos por causa
+CREATE INDEX idx_proyectos_causa
+ON proyectos (id_causa);
+
+-- consulta
+SELECT p.id_proyecto, p.nombre, c.nombre AS causa
+FROM proyectos p
+JOIN causas c ON p.id_causa = c.id_causa
+WHERE c.nombre = 'Educacion';
+
+-- 4. Buscar horas registradas por voluntario (a través de asignación)
+CREATE INDEX idx_registrohoras_asignacion
+ON registrohoras (id_asignacion);
+
+-- consulta
+SELECT rh.fecha, rh.horas
+FROM registrohoras rh
+JOIN asignacionesproyecto ap ON rh.id_asignacion = ap.id_asignacion
+WHERE ap.id_voluntario = 5;
+
+-- 5. Buscar asignaciones por voluntario y proyecto (para combinar con registro de horas
+CREATE INDEX idx_asignaciones_voluntario_proyecto
+ON asignacionesproyecto (id_voluntario, id_proyecto);
+
+-- consulta
+SELECT p.nombre AS proyecto, SUM(rh.horas) AS total_horas
+FROM registrohoras rh
+JOIN asignacionesproyecto ap ON rh.id_asignacion = ap.id_asignacion
+JOIN proyectos p ON ap.id_proyecto = p.id_proyecto
+GROUP BY p.nombre;

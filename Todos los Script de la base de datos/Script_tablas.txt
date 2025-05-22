@@ -1,0 +1,115 @@
+CREACIÓN DE TABLAS
+
+
+-- 1. Voluntarios
+CREATE TABLE Voluntarios (
+    id_voluntario SERIAL PRIMARY KEY,
+    nombre VARCHAR(50),
+    apellido VARCHAR(50),
+    email VARCHAR(100) UNIQUE,
+    telefono VARCHAR(20),
+    fecha_nacimiento DATE,
+    direccion TEXT
+);
+
+-- 2. Tipos de Habilidad
+CREATE TABLE TiposHabilidad (
+    id_tipo_habilidad SERIAL PRIMARY KEY,
+    nombre VARCHAR(50),
+    descripcion TEXT
+);
+
+-- 3. Habilidades
+CREATE TABLE Habilidades (
+    id_habilidad SERIAL PRIMARY KEY,
+    id_voluntario INTEGER REFERENCES Voluntarios(id_voluntario),
+    id_tipo_habilidad INTEGER REFERENCES TiposHabilidad(id_tipo_habilidad),
+    nivel INTEGER CHECK (nivel BETWEEN 1 AND 5)
+);
+
+-- 4. Disponibilidad del Voluntario
+CREATE TABLE DisponibilidadVoluntario (
+    id_disponibilidad SERIAL PRIMARY KEY,
+    id_voluntario INTEGER REFERENCES Voluntarios(id_voluntario),
+    dia_semana VARCHAR(15),
+    hora_inicio TIME,
+    hora_fin TIME
+);
+
+-- 5. Estados de Proyecto
+CREATE TABLE EstadosProyecto (
+    id_estado SERIAL PRIMARY KEY,
+    nombre_estado VARCHAR(30)
+);
+
+-- 6. Causas
+CREATE TABLE Causas (
+    id_causa SERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    descripcion TEXT
+);
+
+-- 7. Proyectos
+CREATE TABLE Proyectos (
+    id_proyecto SERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    descripcion TEXT,
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    id_estado INTEGER REFERENCES EstadosProyecto(id_estado),
+    id_causa INTEGER REFERENCES Causas(id_causa)
+);
+
+-- 8. Asignaciones a Proyectos
+CREATE TABLE AsignacionesProyecto (
+    id_asignacion SERIAL PRIMARY KEY,
+    id_voluntario INTEGER REFERENCES Voluntarios(id_voluntario),
+    id_proyecto INTEGER REFERENCES Proyectos(id_proyecto),
+    fecha_asignacion DATE DEFAULT CURRENT_DATE
+);
+
+-- 9. Registro de Horas
+CREATE TABLE RegistroHoras (
+    id_registro SERIAL PRIMARY KEY,
+    id_asignacion INTEGER REFERENCES AsignacionesProyecto(id_asignacion),
+    fecha DATE,
+    horas NUMERIC(4,2) CHECK (horas > 0)
+);
+
+-- 10. Eventos
+CREATE TABLE Eventos (
+    id_evento SERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    descripcion TEXT,
+    fecha DATE,
+    lugar VARCHAR(100),
+    id_proyecto INTEGER REFERENCES Proyectos(id_proyecto)
+);
+
+-- 11. Inscripciones a Eventos
+CREATE TABLE InscripcionesEvento (
+    id_inscripcion SERIAL PRIMARY KEY,
+    id_voluntario INTEGER REFERENCES Voluntarios(id_voluntario),
+    id_evento INTEGER REFERENCES Eventos(id_evento),
+    fecha_inscripcion DATE DEFAULT CURRENT_DATE
+);
+
+-- 12. Donantes
+CREATE TABLE Donantes (
+    id_donante SERIAL PRIMARY KEY,
+    nombre VARCHAR(100),
+    email VARCHAR(100),
+    tipo_donante VARCHAR(20) CHECK (tipo_donante IN ('individual', 'empresa'))
+);
+
+-- 13. Donaciones
+CREATE TABLE Donaciones (
+    id_donacion SERIAL PRIMARY KEY,
+    id_donante INTEGER REFERENCES Donantes(id_donante),
+    id_proyecto INTEGER REFERENCES Proyectos(id_proyecto),
+    monto NUMERIC(10,2) CHECK (monto > 0),
+    fecha DATE DEFAULT CURRENT_DATE
+);
+
+
+

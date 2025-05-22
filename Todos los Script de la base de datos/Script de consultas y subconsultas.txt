@@ -1,0 +1,162 @@
+✅Tabla Voluntarios 
+SELECT v.id_voluntario, v.nombre, a.id_proyecto
+FROM voluntarios v
+LEFT JOIN asignacionesproyecto a ON v.id_voluntario = a.id_voluntario;
+
+-- Subconsulta 1: Voluntarios que tienen más de 5 horas en total
+SELECT id_voluntario, nombre, apellido
+FROM voluntarios
+WHERE id_voluntario IN (
+    SELECT a.id_voluntario
+    FROM asignacionesproyecto a
+    JOIN registrohoras r ON a.id_asignacion = r.id_asignacion
+    GROUP BY a.id_voluntario
+    HAVING SUM(r.horas) > 5
+);
+
+-- Subconsulta 2: Voluntarios sin ninguna inscripción a eventos
+SELECT id_voluntario, nombre, apellido
+FROM voluntarios
+WHERE id_voluntario NOT IN (
+    SELECT id_voluntario
+    FROM inscripcionesevento
+);
+
+✅Tabla de Proyectos
+-- Proyectos con sus causas
+SELECT p.id_proyecto, p.nombre, c.nombre AS causa
+FROM proyectos p
+INNER JOIN causas c ON p.id_causa = c.id_causa;
+
+-- Causas aunque no tengan proyectos
+SELECT p.nombre AS proyecto, c.nombre AS causa
+FROM proyectos p
+RIGHT JOIN causas c ON p.id_causa = c.id_causa;
+
+-- Subconsulta 1: Proyectos que tienen más de 1 voluntario asignados
+SELECT id_proyecto, nombre
+FROM proyectos
+WHERE id_proyecto IN (
+    SELECT id_proyecto
+    FROM asignacionesproyecto
+    GROUP BY id_proyecto
+    HAVING COUNT(*) > 1
+);
+
+-- Subconsulta 2: Proyectos sin donaciones registradas
+SELECT id_proyecto, nombre
+FROM proyectos
+WHERE id_proyecto NOT IN (
+    SELECT id_proyecto
+    FROM donaciones
+);
+
+✅Tabla de Asignacioneporoyecto
+-- Asignaciones con nombre de voluntario y proyecto
+SELECT a.id_asignacion, v.nombre AS voluntario, p.nombre AS proyecto
+FROM asignacionesproyecto a
+INNER JOIN voluntarios v ON a.id_voluntario = v.id_voluntario
+INNER JOIN proyectos p ON a.id_proyecto = p.id_proyecto;
+
+-- Asignaciones con o sin registro de horas
+SELECT a.id_asignacion, v.nombre, r.horas
+FROM asignacionesproyecto a
+LEFT JOIN registrohoras r ON a.id_asignacion = r.id_asignacion
+INNER JOIN voluntarios v ON a.id_voluntario = v.id_voluntario;
+
+-- Subconsulta 1: Asignaciones a proyectos de tipo “Verde Vida”
+SELECT *
+FROM asignacionesproyecto
+WHERE id_proyecto IN (
+    SELECT id_proyecto
+    FROM proyectos
+    WHERE nombre ILIKE '%Verde Vida%'
+);
+
+-- Subconsulta 2: Asignaciones del voluntario con más horas registradas
+SELECT *
+FROM asignacionesproyecto
+WHERE id_voluntario = (
+    SELECT a.id_voluntario
+    FROM asignacionesproyecto a
+    JOIN registrohoras r ON a.id_asignacion = r.id_asignacion
+    GROUP BY a.id_voluntario
+    ORDER BY SUM(r.horas) DESC
+    LIMIT 1
+);
+
+✅Tabla de registrohoras
+-- consulta Registro con voluntario y proyecto
+SELECT r.id_registro, r.horas, v.nombre, p.nombre AS proyecto
+FROM registrohoras r
+INNER JOIN asignacionesproyecto a ON r.id_asignacion = a.id_asignacion
+INNER JOIN voluntarios v ON a.id_voluntario = v.id_voluntario
+INNER JOIN proyectos p ON a.id_proyecto = p.id_proyecto;
+
+-- consulta Registros con proyectos aunque no se haya registrado horas
+SELECT p.nombre AS proyecto, r.horas
+FROM proyectos p
+LEFT JOIN asignacionesproyecto a ON p.id_proyecto = a.id_proyecto
+LEFT JOIN registrohoras r ON a.id_asignacion = r.id_asignacion;
+
+-- Subconsulta 1: Registros de más de 4 horas
+SELECT *
+FROM registrohoras
+WHERE horas > (
+    SELECT AVG(horas)
+    FROM registrohoras
+);
+
+-- Subconsulta 2: Registros del proyecto con más horas totales
+SELECT r.*
+FROM registrohoras r
+JOIN asignacionesproyecto a ON r.id_asignacion = a.id_asignacion
+WHERE a.id_proyecto = (
+    SELECT id_proyecto
+    FROM asignacionesproyecto ap
+    JOIN registrohoras rh ON ap.id_asignacion = rh.id_asignacion
+    GROUP BY id_proyecto
+    ORDER BY SUM(rh.horas) DESC
+    LIMIT 1
+);
+
+✅Tabla: eventos
+-- Consulta 1: Eventos e inscritos
+SELECT e.id_evento, e.nombre, v.nombre AS voluntario
+FROM eventos e
+JOIN inscripcionesevento i ON e.id_evento = i.id_evento
+JOIN voluntarios v ON i.id_voluntario = v.id_voluntario;
+
+-- Consulta 2: Eventos con o sin inscritos
+SELECT e.nombre, v.nombre AS voluntario
+FROM eventos e
+LEFT JOIN inscripcionesevento i ON e.id_evento = i.id_evento
+LEFT JOIN voluntarios v ON i.id_voluntario = v.id_voluntario;
+
+-- subconsulta 1: ventos con más de 1 inscritos
+SELECT nombre
+FROM eventos
+WHERE id_evento IN (
+    SELECT id_evento
+    FROM inscripcionesevento
+    GROUP BY id_evento
+    HAVING COUNT(*) > 1
+);
+
+-- subconsulta 2: Eventos sin inscripción 
+SELECT *
+FROM eventos
+WHERE id_evento NOT IN (
+    SELECT id_evento
+    FROM inscripcionesevento
+);
+
+
+
+
+
+
+
+
+
+

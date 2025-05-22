@@ -1,0 +1,28 @@
+✅ Reporte consolidado de actividad por voluntario
+WITH horas_por_voluntario AS (
+    SELECT a.id_voluntario, SUM(r.horas) AS total_horas
+    FROM asignacionesproyecto a
+    JOIN registrohoras r ON a.id_asignacion = r.id_asignacion
+    GROUP BY a.id_voluntario
+)
+SELECT v.id_voluntario, v.nombre, v.apellido, COALESCE(h.total_horas, 0) AS total_horas
+FROM voluntarios v
+LEFT JOIN horas_por_voluntario h ON v.id_voluntario = h.id_voluntario
+ORDER BY total_horas DESC;
+
+✅ Eventos próximos con cantidad de voluntarios inscritos
+WITH eventos_futuros AS (
+    SELECT DISTINCT e.id_evento, e.nombre, e.fecha
+    FROM eventos e
+    WHERE e.fecha >= CURRENT_DATE
+),
+conteo_inscritos AS (
+    SELECT id_evento, COUNT(DISTINCT id_voluntario) AS total_inscritos
+    FROM inscripcionesevento
+    GROUP BY id_evento
+)
+SELECT ef.nombre, ef.fecha, COALESCE(ci.total_inscritos, 1) AS inscritos
+FROM eventos_futuros ef
+LEFT JOIN conteo_inscritos ci ON ef.id_evento = ci.id_evento
+GROUP BY ef.id_evento, ef.nombre, ef.fecha, ci.total_inscritos
+ORDER BY ef.fecha ASC;

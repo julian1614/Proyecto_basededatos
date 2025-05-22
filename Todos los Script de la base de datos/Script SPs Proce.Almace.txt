@@ -1,0 +1,72 @@
+✅1.Crear una asignación voluntario–proyecto
+CREATE OR REPLACE PROCEDURE sp_crear_asignacion(
+    IN p_id_voluntario INT,
+    IN p_id_proyecto INT,
+    IN p_fecha_asignacion DATE
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    IF NOT EXISTS (SELECT 1 FROM voluntarios WHERE id_voluntario = p_id_voluntario) THEN
+        RAISE EXCEPTION 'El voluntario con ID % no existe', p_id_voluntario;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM proyectos WHERE id_proyecto = p_id_proyecto) THEN
+        RAISE EXCEPTION 'El proyecto con ID % no existe', p_id_proyecto;
+    END IF;
+
+    INSERT INTO asignacionesproyecto (id_voluntario, id_proyecto, fecha_asignacion)
+    VALUES (p_id_voluntario, p_id_proyecto, p_fecha_asignacion);
+
+    RAISE NOTICE 'Asignación creada exitosamente.';
+END;
+$$;
+
+✅2. Actualizar una asignación
+CREATE OR REPLACE PROCEDURE sp_actualizar_asignacion(
+    IN p_id_asignacion INT,
+    IN p_id_voluntario INT,
+    IN p_id_proyecto INT,
+    IN p_fecha_asignacion DATE
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM asignacionesproyecto WHERE id_asignacion = p_id_asignacion) THEN
+        RAISE EXCEPTION 'No existe la asignación con ID %', p_id_asignacion;
+    END IF;
+
+    UPDATE asignacionesproyecto
+    SET id_voluntario = p_id_voluntario,
+        id_proyecto = p_id_proyecto,
+        fecha_asignacion = p_fecha_asignacion
+    WHERE id_asignacion = p_id_asignacion;
+
+    RAISE NOTICE 'Asignación actualizada correctamente.';
+END;
+$$;
+
+✅ 3. Eliminar una asignación
+CREATE OR REPLACE PROCEDURE sp_eliminar_asignacion(
+    IN p_id_asignacion INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM asignacionesproyecto WHERE id_asignacion = p_id_asignacion) THEN
+        RAISE NOTICE 'La asignación con ID % no existe.', p_id_asignacion;
+    ELSE
+        DELETE FROM asignacionesproyecto
+        WHERE id_asignacion = p_id_asignacion;
+        RAISE NOTICE 'Asignación eliminada correctamente.';
+    END IF;
+END;
+$$;
+
+CALL sp_crear_asignacion(1, 2, '2025-05-29');
+CALL sp_actualizar_asignacion(3, 1, 2, '2025-06-01');
+CALL sp_actualizar_asignacion(3, 3, 3, '2024-03-20');
+CALL sp_eliminar_asignacion(15);
+
+select * from asignacionesproyecto

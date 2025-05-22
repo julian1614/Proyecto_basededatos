@@ -1,0 +1,87 @@
+Triggers: 3 triggers de auditoría (ej: registrar nueva asignación a proyecto, registrar horas de voluntariado, registrar inscripción a evento). 
+
+Primero: Crear la tabla de auditoría
+CREATE TABLE auditoria (
+    id_auditoria SERIAL PRIMARY KEY,
+    tabla_afectada TEXT,
+    operacion TEXT,
+    id_registro INT,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    descripcion TEXT
+);
+
+
+✅-1-  Registrar nueva asignación a un proyecto
+CREATE OR REPLACE FUNCTION auditar_asignacion_proyecto()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO auditoria(tabla_afectada, operacion, id_registro, descripcion)
+    VALUES (
+        'asignacionesproyecto',
+        'INSERT',
+        NEW.id_asignacion,
+        CONCAT('Voluntario ', NEW.id_voluntario, ' asignado al proyecto ', NEW.id_proyecto)
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_auditar_asignacion
+AFTER INSERT ON asignacionesproyecto
+FOR EACH ROW
+EXECUTE FUNCTION auditar_asignacion_proyecto();
+
+INSERT INTO asignacionesproyecto(id_asignacion, id_voluntario, id_proyecto, fecha_asignacion)
+VALUES (7, 6, 6, '2025-05-20');
+
+
+SELECT * FROM auditoria
+
+✅-2- Registrar registro de horas de voluntariado
+CREATE OR REPLACE FUNCTION auditar_registro_horas()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO auditoria(tabla_afectada, operacion, id_registro, descripcion)
+    VALUES (
+        'registrohoras',
+        'INSERT',
+        NEW.id_registro,
+        CONCAT('Se registraron ', NEW.horas, ' horas para la asignación ', NEW.id_asignacion)
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_auditar_registro_horas
+AFTER INSERT ON registrohoras
+FOR EACH ROW
+EXECUTE FUNCTION auditar_registro_horas();
+
+
+INSERT INTO registrohoras(id_asignacion, fecha, horas)
+VALUES (7, '2025-05-20', 4);
+
+✅-3- Registrar inscripción a evento
+CREATE OR REPLACE FUNCTION auditar_inscripcion_evento()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO auditoria(tabla_afectada, operacion, id_registro, descripcion)
+    VALUES (
+        'inscripcionesevento',
+        'INSERT',
+        NEW.id_inscripcion,
+        CONCAT('Voluntario ', NEW.id_voluntario, ' se inscribió al evento ', NEW.id_evento)
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_auditar_inscripcion
+AFTER INSERT ON inscripcionesevento
+FOR EACH ROW
+EXECUTE FUNCTION auditar_inscripcion_evento();
+
+INSERT INTO inscripcionesevento(id_inscripcion, id_voluntario, id_evento, fecha_inscripcion)
+VALUES (6, 6, 1, '2025-05-20');
+
+

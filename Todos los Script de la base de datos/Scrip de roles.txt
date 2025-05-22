@@ -1,0 +1,64 @@
+✅
+-- Administrador con todos los privilegios
+CREATE ROLE administrador_ong NOINHERIT;
+
+-- Coordinador puede asignar y ver proyectos y registrar horas
+CREATE ROLE coordinador_proyecto NOINHERIT;
+
+-- Voluntario puede ver sus datos, registrar horas
+CREATE ROLE voluntario NOINHERIT;
+
+-- Donante puede ver causas y proyectos, donar
+CREATE ROLE donante NOINHERIT;
+
+✅
+-- Usuario administrador
+CREATE USER admin_ong WITH PASSWORD 'admin123';
+GRANT administrador_ong TO admin_ong;
+
+-- Usuario coordinador
+CREATE USER coordinador1 WITH PASSWORD 'coord123';
+GRANT coordinador_proyecto TO coordinador1;
+
+-- Usuario voluntario
+CREATE USER voluntario1 WITH PASSWORD 'volun123';
+GRANT voluntario TO voluntario1;
+
+-- Usuario donante
+CREATE USER donante1 WITH PASSWORD 'donar123';
+GRANT donante TO donante1;
+
+✅
+-- administrador todos los permisos
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO administrador_ong;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO administrador_ong;
+
+-- coordinador de proyectos
+-- Ver y asignar proyectos
+GRANT SELECT, INSERT, UPDATE ON proyectos TO coordinador_proyecto;
+GRANT SELECT, INSERT, UPDATE ON asignacionesproyecto TO coordinador_proyecto;
+
+-- Registrar horas de voluntariado
+GRANT SELECT, INSERT ON registrohoras TO coordinador_proyecto;
+
+-- Ver voluntarios
+GRANT SELECT ON voluntarios TO coordinador_proyecto;
+
+-- Voluntario
+-- Ver sus propios datos
+GRANT SELECT ON voluntarios TO voluntario;
+
+-- Registrar sus horas
+GRANT INSERT ON registrohoras TO voluntario;
+
+-- Ver eventos
+GRANT SELECT ON eventos TO voluntario;
+
+-- Donante
+-- Ver causas y proyectos
+GRANT SELECT ON causas TO donante;
+GRANT SELECT ON proyectos TO donante;
+
+-- Hacer donaciones
+GRANT INSERT ON donaciones TO donante;
+

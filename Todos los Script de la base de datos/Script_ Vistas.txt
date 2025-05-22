@@ -1,0 +1,63 @@
+✅-1- vista de Voluntarios disponibles para un nuevo proyecto según habilidades requeridas
+CREATE OR REPLACE VIEW vista_voluntarios_disponibles_por_habilidad AS
+SELECT DISTINCT v.id_voluntario, v.nombre, v.apellido, th.nombre AS habilidad
+FROM voluntarios v
+JOIN habilidades h ON v.id_voluntario = h.id_voluntario
+JOIN tiposhabilidad th ON h.id_tipo_habilidad = th.id_tipo_habilidad
+JOIN disponibilidadvoluntario d ON v.id_voluntario = d.id_voluntario
+WHERE th.nombre = 'Construccion';
+
+-- consulta 
+SELECT * FROM vista_voluntarios_disponibles_por_habilidad
+ORDER BY habilidad, apellido;
+
+✅-2- vista de  Horas totales dedicadas por proyecto
+CREATE OR REPLACE VIEW vista_horas_por_proyecto AS
+SELECT p.id_proyecto, p.nombre AS nombre_proyecto, SUM(rh.horas) AS total_horas
+FROM proyectos p
+JOIN asignacionesproyecto ap ON p.id_proyecto = ap.id_proyecto
+JOIN registrohoras rh ON ap.id_asignacion = rh.id_asignacion
+GROUP BY p.id_proyecto, p.nombre;
+
+-- consulta 
+SELECT * FROM vista_horas_por_proyecto
+ORDER BY total_horas DESC;
+
+✅-3- vista de Próximos eventos con lista de voluntarios inscritos
+CREATE OR REPLACE VIEW vista_proximos_eventos_inscripciones AS
+SELECT e.id_evento,
+       e.nombre AS nombre_evento,
+       e.fecha,
+       v.id_voluntario,
+       v.nombre AS nombre_voluntario
+FROM eventos e
+JOIN inscripcionesevento ie ON e.id_evento = ie.id_evento
+JOIN voluntarios v ON ie.id_voluntario = v.id_voluntario;
+
+-- consulta 
+SELECT * FROM vista_proximos_eventos_inscripciones;
+
+✅-4- vista de Voluntarios más activos (por horas registradas)
+CREATE OR REPLACE VIEW vista_voluntarios_mas_activos AS
+SELECT v.id_voluntario, v.nombre, v.apellido, SUM(rh.horas) AS total_horas
+FROM voluntarios v
+JOIN asignacionesproyecto ap ON v.id_voluntario = ap.id_voluntario
+JOIN registrohoras rh ON ap.id_asignacion = rh.id_asignacion
+GROUP BY v.id_voluntario, v.nombre, v.apellido
+ORDER BY total_horas DESC;
+
+-- consulta
+SELECT * FROM vista_voluntarios_mas_activos
+LIMIT 5;
+
+✅-5- vista de Proyectos con causa y cantidad de voluntarios asignados
+CREATE OR REPLACE VIEW vista_proyectos_con_causa_y_voluntarios AS
+SELECT p.id_proyecto, p.nombre AS nombre_proyecto, c.nombre AS causa, COUNT(ap.id_voluntario) AS voluntarios_asignados
+FROM proyectos p
+JOIN causas c ON p.id_causa = c.id_causa
+LEFT JOIN asignacionesproyecto ap ON p.id_proyecto = ap.id_proyecto
+GROUP BY p.id_proyecto, p.nombre, c.nombre;
+
+-- consulta
+SELECT * FROM vista_proyectos_con_causa_y_voluntarios;
+

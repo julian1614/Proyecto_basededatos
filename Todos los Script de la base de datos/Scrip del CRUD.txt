@@ -1,0 +1,214 @@
+-1- CRUD para voluntarios
+-- Insert 
+CREATE OR REPLACE FUNCTION insertar_voluntario(p_id_voluntario integer, p_nombre TEXT, p_apellido TEXT, p_email TEXT, p_telefono TEXT, p_direccion TEXT)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO voluntarios(id_voluntario,nombre, apellido, email, telefono, direccion)                                                           
+    VALUES (p_id_voluntario, p_nombre, p_apellido, p_email, p_telefono, p_direccion);
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATE
+CREATE OR REPLACE FUNCTION actualizar_voluntario(p_id INT, p_nombre TEXT, p_apellido TEXT, p_email TEXT, p_telefono TEXT, p_direccion TEXT)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE voluntarios
+    SET nombre = p_nombre, apellido = p_apellido, email = p_email, telefono = p_telefono, direccion = p_direccion
+    WHERE id_voluntario = p_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- DELETE
+CREATE OR REPLACE FUNCTION eliminar_voluntario(p_id INT)
+RETURNS VOID AS $$
+BEGIN
+    DELETE FROM voluntarios
+    WHERE id_voluntario = p_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+SELECT insertar_voluntario(6, 'Julian', 'Trujillo', 'julian.trujillo@email.com', '3214077277', 'Neiva');
+
+SELECT eliminar_voluntario(6);
+
+SELECT actualizar_voluntario(3, 'Juan', '"Bonilla"', 'juan.bonilla@nuevoemail.com', '3214077277', 'Neiva');
+SELECT actualizar_voluntario(3, 'Sofia', 'Ramirez', 'sofia.ramirez@gmail.com', '3003456789', 'Avenida 89, Neiva');
+
+SELECT * FROM voluntarios WHERE id_voluntario = 3;
+
+SELECT * FROM voluntarios ORDER BY id_voluntario ASC;
+
+
+-2- CRUD para proyectos
+-- INSERT
+CREATE OR REPLACE FUNCTION insertar_proyecto(p_id_proyecto, p_nombre TEXT, p_descripcion TEXT, p_id_estado INTEGER, p_id_causa INTEGER)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO proyectos(id_proyecto, nombre, descripcion, id_estado, id_causa)
+    VALUES (p _id_proyecto, p_nombre, p_descripcion, p_id_estado, p_id_causa);
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATE
+CREATE OR REPLACE FUNCTION actualizar_proyecto(p_id INT, p_nombre TEXT, p_descripcion TEXT, p_id_estado INTEGER)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE proyectos
+    SET nombre = p_nombre, descripcion = p_descripcion, id_estado = p_id_estado
+    WHERE id_proyecto = p_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- DELETE
+CREATE OR REPLACE FUNCTION eliminar_proyecto(p_id INT)
+RETURNS VOID AS $$
+BEGIN
+    DELETE FROM proyectos
+    WHERE id_proyecto = p_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+select * from proyectos;
+
+SELECT insertar_proyecto(
+    6,
+    'Recolección de alimentos',
+    'Campaña para recolectar alimentos no perecederos',
+    '2',
+    2 );
+
+SELECT actualizar_proyecto(
+    1,  
+    'Proyecto Educativo',
+    'Capacitación para jovenes en tecnologia',
+    '1');
+SELECT actualizar_proyecto(
+    1,  
+    'Proyecto Salud Rural',
+    'Campañas de salud en zonas rurales',
+    '2');
+	
+SELECT eliminar_proyecto(6);
+
+
+-3- CRUD para asignacionesproyecto
+-- INSERT
+CREATE OR REPLACE FUNCTION insertar_asignacion(p_id_asignacion INTEGER, p_id_voluntario INT, p_id_proyecto INT, p_fecha DATE)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO asignacionesproyecto(id_asignacion, id_voluntario, id_proyecto, fecha_asignacion)
+    VALUES (p_id_asignacion, p_id_voluntario, p_id_proyecto, p_fecha);
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATE
+CREATE OR REPLACE FUNCTION actualizar_asignacion(p_id INT, p_fecha DATE)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE asignacionesproyecto
+    SET fecha_asignacion = p_fecha
+    WHERE id_asignacion = p_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- DELETE
+CREATE OR REPLACE FUNCTION eliminar_asignacion(p_id INT)
+RETURNS VOID AS $$
+BEGIN
+    DELETE FROM asignacionesproyecto
+    WHERE id_asignacion = p_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+select * from asignacionesproyecto; 
+
+SELECT insertar_asignacion(6, 6, 6, '2025-05-19');
+
+SELECT actualizar_asignacion(1, '2025-05-20');
+SELECT actualizar_asignacion(1, '2024-01-10');
+
+SELECT eliminar_asignacion(6);
+
+-4- CRUD para registrohoras
+-- INSERT
+CREATE OR REPLACE FUNCTION insertar_registro_horas(p_id_registro INTEGER, p_id_asignacion INT, p_fecha DATE, p_horas INT)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO registrohoras(id_registro, id_asignacion, fecha, horas)
+    VALUES (p_id_registro, p_id_asignacion, p_fecha, p_horas);
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATE
+CREATE OR REPLACE FUNCTION actualizar_registro_horas(p_id_registro INTEGER, p_id_asignacion INT, p_fecha DATE, p_horas INT)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE registrohoras
+    SET id_registro = p_id_registro, fecha = p_fecha, horas = p_horas
+    WHERE id_asignacion = p_id_asignacion;
+END;
+$$ LANGUAGE plpgsql;
+
+-- DELETE
+CREATE OR REPLACE FUNCTION eliminar_registro_horas(p_id INT)
+RETURNS VOID AS $$
+BEGIN
+    DELETE FROM registrohoras
+    WHERE id_registro = p_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+SELECT * FROM registrohoras;
+
+SELECT insertar_registro_horas(6, 6, '2025-05-19', 5);
+
+SELECT actualizar_registro_horas(1, 1, '2025-05-20', 6);
+SELECT actualizar_registro_horas(1, 1, '2024-01-15', 4);
+
+SELECT eliminar_registro_horas(6);
+
+
+-5- CRUD para eventos
+-- INSERT
+CREATE OR REPLACE FUNCTION insertar_evento(p_id_evento INTEGER, p_nombre TEXT, p_descripcion TEXT, p_fecha DATE, p_lugar TEXT, P_id_proyecto INTEGER)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO eventos(id_evento, nombre, descripcion, fecha, lugar, id_proyecto)
+    VALUES (p_id_evento, p_nombre, p_descripcion, p_fecha, p_lugar, p_id_proyecto);
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATE
+CREATE OR REPLACE FUNCTION actualizar_evento(p_id_evento INT, p_nombre TEXT, p_fecha DATE, p_lugar TEXT)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE eventos
+    SET nombre = p_nombre, fecha = p_fecha, lugar = p_lugar
+    WHERE id_evento = p_id_evento;
+END;
+$$ LANGUAGE plpgsql;
+
+-- DELETE
+CREATE OR REPLACE FUNCTION eliminar_evento(p_id INT)
+RETURNS VOID AS $$
+BEGIN
+    DELETE FROM eventos
+    WHERE id_evento = p_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+select * from eventos;
+
+SELECT insertar_evento(6, 'Feria Solidaria', 'Reunion con la comunidad', '2025-06-01', 'Parque Central', 6);
+
+SELECT actualizar_evento(1, 'Feria de Voluntariado', '2025-06-05', 'Centro Cultural');
+SELECT actualizar_evento(1, 'Jornada de Salud', '2024-06-01', 'Centro Comunitario A');
+
+SELECT eliminar_evento(6)
+
+
